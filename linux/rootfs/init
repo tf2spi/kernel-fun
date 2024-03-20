@@ -1,0 +1,23 @@
+#!/busybox sh
+export PATH="/bin:/sbin"
+BUSYBOX="/busybox"
+
+"$BUSYBOX" mkdir /bin
+"$BUSYBOX" ln -s "$BUSYBOX" /bin/ln
+
+cd /bin
+for PROG in sh xxd hexdump cat telnet telnetd mknod mkdir ls; do
+	ln -s "$BUSYBOX" $PROG
+done
+
+mkdir /sbin
+cd /sbin
+for PROG in su sulogin ; do
+	ln -s "$BUSYBOX" $PROG
+done
+
+mkdir /dev
+cd /dev
+mknod console c 5 1
+mknod null c 1 3
+/bin/sh

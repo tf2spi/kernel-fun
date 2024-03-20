@@ -6,13 +6,13 @@ BUSYBOX="/busybox"
 "$BUSYBOX" ln -s "$BUSYBOX" /bin/ln
 
 cd /bin
-for PROG in sh xxd hexdump cat telnet telnetd mknod mkdir ls; do
+for PROG in sh xxd hexdump cat telnet telnetd mknod mkdir ls busybox cp mount ; do
 	ln -s "$BUSYBOX" $PROG
 done
 
 mkdir /sbin
 cd /sbin
-for PROG in su sulogin ; do
+for PROG in su sulogin init insmod rmmod lsmod dmesg ; do
 	ln -s "$BUSYBOX" $PROG
 done
 
@@ -20,4 +20,14 @@ mkdir /dev
 cd /dev
 mknod console c 5 1
 mknod null c 1 3
+mknod kmsg c 1 11
+
+cd /
+mkdir /proc
+mount proc /proc -t proc
+mkdir /dev/pts
+mount devpts /dev/pts -t devpts
+mkdir /sys
+mount sysfs /sys -t sysfs
+
 /bin/sh

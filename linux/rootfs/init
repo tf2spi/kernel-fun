@@ -6,7 +6,7 @@ BUSYBOX="/busybox"
 "$BUSYBOX" ln -s "$BUSYBOX" /bin/ln
 
 cd /bin
-for PROG in sh xxd hexdump cat telnet telnetd mknod mkdir ls busybox cp mount ; do
+for PROG in sh xxd hexdump cat telnet telnetd mknod mkdir ls busybox cp mv mount uname modprobe ps ; do
 	ln -s "$BUSYBOX" $PROG
 done
 
@@ -29,5 +29,9 @@ mkdir /dev/pts
 mount devpts /dev/pts -t devpts
 mkdir /sys
 mount sysfs /sys -t sysfs
+
+KMOD_DIR="/lib/modules/$(uname -r)"
+mkdir -p "$KMOD_DIR"
+mv /*.ko "$KMOD_DIR"
 
 /bin/sh

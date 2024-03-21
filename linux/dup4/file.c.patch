@@ -1,0 +1,64 @@
+1345c1345
+< static int ksys_dup3(unsigned int oldfd, unsigned int newfd, int flags)
+---
+> static int ksys_dup4(unsigned int oldfd, unsigned int newfd, int flags, struct task_struct *selected)
+1349c1349,1350
+< 	struct files_struct *files = current->files;
+---
+> 	struct files_struct *current_files = current->files;
+> 	struct files_struct *selected_files = selected->files;
+1360,1362c1361,1367
+< 	spin_lock(&files->file_lock);
+< 	err = expand_files(files, newfd);
+< 	file = files_lookup_fd_locked(files, oldfd);
+---
+> 	spin_lock(&selected_files->file_lock);
+> 	if (current_files != selected_files) {
+> 		spin_lock(&current_files->file_lock);
+> 	}
+> 
+> 	err = expand_files(selected_files, newfd);
+> 	file = files_lookup_fd_locked(current_files, oldfd);
+1370c1375,1379
+< 	return do_dup2(files, file, newfd, flags);
+---
+> 
+> 	if (current_files != selected_files) {
+> 		spin_unlock(&current_files->file_lock);
+> 	}
+> 	return do_dup2(selected_files, file, newfd, flags);
+1375c1384,1407
+< 	spin_unlock(&files->file_lock);
+---
+> 	if (current_files != selected_files) {
+> 		spin_unlock(&current_files->file_lock);
+> 	}
+> 	spin_unlock(&selected_files->file_lock);
+> 	return err;
+> }
+> 
+> SYSCALL_DEFINE4(dup4, unsigned int, oldfd, unsigned int, newfd, int, flags, pid_t, pid_nr)
+> {
+> 	struct pid *pid = find_get_pid(pid_nr);
+> 	if (pid == NULL) {
+> 		return -ESRCH;
+> 	}
+> 
+> 	struct task_struct *task = pid_task(pid, PIDTYPE_PID);
+> 	int err = -EPERM;
+> 	if (task != NULL) {
+> 		kuid_t check = task_euid(current);
+> 		kuid_t target = task_euid(task);
+> 		if (!check.val || check.val == target.val || capable(CAP_SYS_PTRACE)) {
+> 			err = ksys_dup4(oldfd, newfd, flags, task);
+> 		}
+> 	}
+> 	put_pid(pid);
+1381c1413
+< 	return ksys_dup3(oldfd, newfd, flags);
+---
+> 	return ksys_dup4(oldfd, newfd, flags, current);
+1400c1432
+< 	return ksys_dup3(oldfd, newfd, 0);
+---
+> 	return ksys_dup4(oldfd, newfd, 0, current);

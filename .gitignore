@@ -27,12 +27,13 @@
 *.lib
 
 # Executables
+*.elf
 *.exe
 *.out
 *.app
 
 # Linux ignores
-linux-*
+*linux-*
 *.cpio.gz
 *.ko*
 *.mod.*

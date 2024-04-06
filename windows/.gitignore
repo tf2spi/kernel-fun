@@ -1,0 +1,6 @@
+# Driver artifacts
+*.inf
+*.tlog
+*.vcxproj*
+**/Release
+**/Debug
